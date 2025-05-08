@@ -1,2 +1,3 @@
-# BetterLifeSite
-A Open-Source Website Created By OmarBest1155 For Health Managment Called BetterLife
+This Is Open Source
+
+Do Anything You Want With The Code
