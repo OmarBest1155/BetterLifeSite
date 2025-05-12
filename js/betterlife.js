@@ -1846,7 +1846,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 ${Object.entries(workoutTimes).map(([set, time]) => `
                     <div class="workout-time-tag ${isCurrentDay && set === closestSet ? 'current-set' : ''}">
                         <span class="set-number">Set ${set}:</span>
-                        <span class="time-value">${time}</span>
+                        <span class="time-value">${formatTime(time)}</span>
                     </div>
                 `).join('')}
             </div>
@@ -2043,6 +2043,15 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    function formatTime(time24) {
+        const [hours24, minutes] = time24.split(':');
+        let hours = parseInt(hours24);
+        const ampm = hours >= 12 ? 'PM' : 'AM';
+        hours = hours % 12;
+        hours = hours ? hours : 12; // Convert 0 to 12
+        return `${hours}:${minutes} ${ampm}`;
+    }
+
     function showTimeModal(workout, dayId, workoutTag) {
         const userId = auth.currentUser.uid;
         const workoutStats = JSON.parse(localStorage.getItem(`workoutStats_${userId}_${dayId}_${workout.id}`) || 'null');
@@ -2099,7 +2108,7 @@ document.addEventListener('DOMContentLoaded', () => {
             timeTag.className = 'workout-time-tag';
             timeTag.innerHTML = `
                 <span class="set-number">Set ${selectedSet}:</span>
-                <span class="time-value">${timeInput}</span>
+                <span class="time-value">${formatTime(timeInput)}</span>
             `;
             timesContainer.appendChild(timeTag);
 
@@ -2534,7 +2543,7 @@ function createWorkoutTag(workout, workoutsContainer, dayId) {
             ${Object.entries(workoutTimes).map(([set, time]) => `
                 <div class="workout-time-tag ${isCurrentDay && set === closestSet ? 'current-set' : ''}">
                     <span class="set-number">Set ${set}:</span>
-                    <span class="time-value">${time}</span>
+                    <span class="time-value">${formatTime(time)}</span>
                 </div>
             `).join('')}
         </div>
@@ -2787,7 +2796,7 @@ function showTimeModal(workout, dayId, workoutTag) {
         timeTag.className = 'workout-time-tag';
         timeTag.innerHTML = `
             <span class="set-number">Set ${selectedSet}:</span>
-            <span class="time-value">${timeInput}</span>
+            <span class="time-value">${formatTime(timeInput)}</span>
         `;
         timesContainer.appendChild(timeTag);
 
@@ -4178,6 +4187,270 @@ logoutModal.addEventListener('click', (e) => {
     if (e.target === logoutModal) {
         logoutModal.classList.remove('active');
     }
+});
+
+// ...existing code...
+
+// ...existing code...
+
+document.addEventListener('DOMContentLoaded', () => {
+    // ...existing code...
+
+    // Add schedule type toggle functionality
+    const scheduleTypeToggle = document.querySelector('.schedule-type-toggle');
+    const normalScheduleContainer = document.querySelector('.normal-schedule-container');
+    const fixedScheduleContainer = document.querySelector('.fixed-schedule-container');
+    const normalAddBtn = document.querySelector('.normal-schedule-container #add-schedule-btn');
+    const fixedAddBtn = document.querySelector('.fixed-schedule-container #add-schedule-btn');
+    
+    scheduleTypeToggle.addEventListener('click', () => {
+        const isNormal = scheduleTypeToggle.textContent === 'Normal';
+        scheduleTypeToggle.textContent = isNormal ? 'Fixed' : 'Normal';
+        scheduleTypeToggle.classList.toggle('fixed');
+        
+        normalScheduleContainer.style.display = isNormal ? 'none' : 'block';
+        fixedScheduleContainer.style.display = isNormal ? 'block' : 'none';
+
+        // Toggle button states
+        normalAddBtn.classList.toggle('disabled');
+        fixedAddBtn.classList.toggle('disabled');
+    });
+
+    // Only add click handler to normal schedule button
+    normalAddBtn.addEventListener('click', () => {
+        scheduleOverlay.classList.add('active');
+        updateCalendar();
+    });
+
+    // ...existing code...
+});
+
+// ...existing code...
+
+// ...existing code...
+
+// Add after calendar functionality
+const FIXED_DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+function initializeFixedSchedule() {
+    const fixedContainer = document.querySelector('.fixed-schedule-container');
+    const currentDay = new Date().toLocaleString('en-US', { weekday: 'long' });
+    
+    fixedContainer.innerHTML = `
+        <div class="days-container">
+            ${FIXED_DAYS.map(day => `
+                <div class="day-entry${day === currentDay ? ' current-day' : ''}" data-day="${day.toLowerCase()}">
+                    <div class="day-main-content">
+                        <div class="day-date">${day}</div>
+                        <div class="day-actions">
+                            <div class="day-status">Scheduled</div>
+                            <button class="day-add-workout" data-day="${day.toLowerCase()}" title="Add workout">
+                                <div class="plus-icon"></div>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="day-workouts" id="fixed-${day.toLowerCase()}-workouts"></div>
+                </div>
+            `).join('')}
+        </div>
+    `;
+
+    // Add click handlers for add workout buttons
+    fixedContainer.querySelectorAll('.day-add-workout').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const dayId = btn.dataset.day;
+            handleFixedDayWorkout(dayId);
+        });
+    });
+}
+
+function handleFixedDayWorkout(day) {
+    const userId = auth.currentUser?.uid;
+    if (!userId) return;
+
+    const userWorkouts = JSON.parse(localStorage.getItem(`workouts_${userId}`) || '[]');
+    if (userWorkouts.length === 0) {
+        showNotification('Add some workouts first in the Workouts section!', 'error');
+        return;
+    }
+
+    // Get existing workouts for this day
+    const fixedWorkouts = JSON.parse(localStorage.getItem(`fixed_workouts_${userId}`) || '{}');
+    const existingWorkouts = new Set((fixedWorkouts[day] || []).map(w => w.name));
+
+    // Create and show workout selection dialog
+    const dialog = document.createElement('div');
+    dialog.className = 'workout-selection-overlay active';
+    dialog.innerHTML = `
+        <div class="workout-selection-container" style="opacity: 1; transform: translateY(0);">
+            <h2>Select Workout for ${day.charAt(0).toUpperCase() + day.slice(1)}</h2>
+            <div class="workouts-list">
+                ${userWorkouts.map(workout => `
+                    <div class="workout-item ${existingWorkouts.has(workout.name) ? 'disabled' : ''}" 
+                         data-workout='${JSON.stringify({name: workout.name, type: workout.type})}'>
+                        <span>${workout.name}</span>
+                        <small>(${workout.type})</small>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(dialog);
+
+    // Handle workout selection
+    dialog.querySelectorAll('.workout-item:not(.disabled)').forEach(item => {
+        item.addEventListener('click', () => {
+            const workoutData = JSON.parse(item.dataset.workout);
+            saveFixedWorkout(workoutData.name, workoutData.type, day);
+            dialog.remove();
+        });
+    });
+
+    // Close dialog when clicking outside
+    dialog.addEventListener('click', (e) => {
+        if (e.target === dialog) {
+            dialog.remove();
+        }
+    });
+}
+
+// ...existing code...
+
+function saveFixedWorkout(workout, category, dayId) {
+    const userId = auth.currentUser?.uid;
+    if (!userId) return;
+
+    const workoutData = {
+        id: Date.now(),
+        name: workout,  // Store the workout name directly
+        type: category,
+        day: dayId
+    };
+
+    const fixedWorkouts = JSON.parse(localStorage.getItem(`fixed_workouts_${userId}`) || '{}');
+    if (!fixedWorkouts[dayId]) {
+        fixedWorkouts[dayId] = [];
+    }
+    fixedWorkouts[dayId].push(workoutData);
+    localStorage.setItem(`fixed_workouts_${userId}`, JSON.stringify(fixedWorkouts));
+
+    // Update the display
+    const workoutsContainer = document.getElementById(`fixed-${dayId}-workouts`);
+    createWorkoutTag(workoutData, workoutsContainer, dayId);
+}
+
+function updateFixedScheduleDisplay() {
+    const userId = auth.currentUser?.uid;
+    if (!userId) return;
+
+    const fixedWorkouts = JSON.parse(localStorage.getItem(`fixed_workouts_${userId}`) || '{}');
+    
+    FIXED_DAYS.forEach(day => {
+        const dayId = day.toLowerCase();
+        const workoutsContainer = document.getElementById(`fixed-${dayId}-workouts`);
+        if (!workoutsContainer) return;
+
+        workoutsContainer.innerHTML = '';
+        
+        if (fixedWorkouts[dayId]) {
+            fixedWorkouts[dayId].forEach(workout => {
+                // Pass the stored workout data directly to createWorkoutTag
+                createWorkoutTag(workout, workoutsContainer, dayId);
+            });
+        }
+    });
+}
+
+// Modify the existing workout selection handler
+document.addEventListener('click', (e) => {
+    if (e.target.matches('.workout-item')) {
+        const workout = e.target.textContent;
+        const category = e.target.closest('.workout-category').querySelector('.category-title').textContent;
+        
+        const context = JSON.parse(localStorage.getItem('currentScheduleContext'));
+        
+        if (context.type === 'fixed') {
+            const success = saveFixedWorkout(workout, category, context.day);
+            if (success) {
+                showNotification('Workout added to fixed schedule!', 'success');
+            } else {
+                showNotification('Workout already exists for this day', 'error');
+            }
+        } else {
+            // Existing normal schedule logic
+            // ...existing code...
+        }
+        
+        document.getElementById('workout-selection-overlay').classList.remove('active');
+    }
+});
+
+// Add this to your initialization code
+document.addEventListener('DOMContentLoaded', () => {
+    // ...existing code...
+    
+    initializeFixedSchedule();
+    
+    // Add toggle handler for schedule type
+    const scheduleTypeToggle = document.querySelector('.schedule-type-toggle');
+    scheduleTypeToggle.addEventListener('click', () => {
+        const isNormal = scheduleTypeToggle.textContent === 'Normal';
+        const normalContainer = document.querySelector('.normal-schedule-container');
+        const fixedContainer = document.querySelector('.fixed-schedule-container');
+
+        scheduleTypeToggle.textContent = isNormal ? 'Fixed' : 'Normal';
+        scheduleTypeToggle.classList.toggle('fixed');
+        
+        normalContainer.style.display = isNormal ? 'none' : 'block';
+        fixedContainer.style.display = isNormal ? 'block' : 'none';
+    });
+});
+
+// ...existing code...
+
+// Remove old click handler if it exists
+document.addEventListener('DOMContentLoaded', () => {
+    // ...existing code...
+    
+    const scheduleTypeToggle = document.querySelector('.schedule-type-toggle');
+    const normalScheduleContainer = document.querySelector('.normal-schedule-container');
+    const fixedScheduleContainer = document.querySelector('.fixed-schedule-container');
+
+    // Initialize fixed schedule if it hasn't been done
+    if (!fixedScheduleContainer.innerHTML.trim()) {
+        initializeFixedSchedule();
+    }
+
+    // Make sure toggle button exists
+    if (scheduleTypeToggle) {
+        scheduleTypeToggle.addEventListener('click', () => {
+            const isNormal = scheduleTypeToggle.textContent === 'Normal';
+            
+            // Update button text and style
+            scheduleTypeToggle.textContent = isNormal ? 'Fixed' : 'Normal';
+            scheduleTypeToggle.classList.toggle('fixed');
+            
+            // Toggle containers' visibility
+            normalScheduleContainer.style.display = isNormal ? 'none' : 'block';
+            fixedScheduleContainer.style.display = isNormal ? 'block' : 'none';
+            
+            // Update button states
+            const scheduleBtn = document.getElementById('add-schedule-btn');
+            if (scheduleBtn) {
+                scheduleBtn.classList.toggle('disabled', isNormal);
+            }
+
+            // Refresh the display for the active container
+            if (isNormal) {
+                updateFixedScheduleDisplay();
+            } else {
+                updateScheduleDisplay();
+            }
+        });
+    }
+    
+    // ...existing code...
 });
 
 // ...existing code...

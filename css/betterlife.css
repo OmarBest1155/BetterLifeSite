@@ -4898,3 +4898,89 @@ body {
 }
 
 /* ...existing code... */
+
+/* ...existing code... */
+
+.schedule-title-container {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.schedule-type-toggle {
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: white;
+    border: 2px solid #3498db;
+    color: #3498db;
+}
+
+.schedule-type-toggle:hover {
+    background: rgba(52, 152, 219, 0.1);
+}
+
+.schedule-type-toggle.fixed {
+    background: linear-gradient(120deg, #3498db, #2ecc71);
+    border: none;
+    color: white;
+}
+
+.schedule-type-toggle.fixed:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+}
+
+/* ...existing code... */
+
+/* ...existing code... */
+
+.normal-schedule-container,
+.fixed-schedule-container {
+    transition: opacity 0.3s ease;
+    min-height: 200px;
+}
+
+.normal-schedule-container {
+    display: block;
+}
+
+.fixed-schedule-container {
+    display: none;
+}
+
+/* ...existing code... */
+
+/* ...existing code... */
+
+#add-schedule-btn.disabled {
+    opacity: 0.5;
+    cursor: default;
+    pointer-events: none;
+    background: #ccc;
+    box-shadow: none;
+}
+
+#add-schedule-btn.disabled:hover {
+    transform: none;
+    box-shadow: none;
+}
+
+/* ...existing code... */
+
+.fixed-schedule-container .day-entry {
+    animation: slideInLeft 0.5s ease-out forwards;
+    opacity: 0;
+}
+
+.fixed-schedule-container .day-entry:nth-child(1) { animation-delay: 0.1s; }
+.fixed-schedule-container .day-entry:nth-child(2) { animation-delay: 0.2s; }
+.fixed-schedule-container .day-entry:nth-child(3) { animation-delay: 0.3s; }
+.fixed-schedule-container .day-entry:nth-child(4) { animation-delay: 0.4s; }
+.fixed-schedule-container .day-entry:nth-child(5) { animation-delay: 0.5s; }
+.fixed-schedule-container .day-entry:nth-child(6) { animation-delay: 0.6s; }
+.fixed-schedule-container .day-entry:nth-child(7) { animation-delay: 0.7s; }
+
+/* ...existing code... */

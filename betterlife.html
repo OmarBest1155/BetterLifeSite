@@ -158,11 +158,16 @@
         </div>
         <div class="section-content schedule-section" data-section="schedule">
             <div class="workouts-header">
-                <h2 class="status-title">Schedule</h2>
-                <button class="add-workout-btn" id="add-schedule-btn" title="Add Schedule"></button>
+                <div class="schedule-title-container">
+                    <h2 class="status-title">Schedule</h2>
+                    <button class="schedule-type-toggle">Normal</button>
+                </div>
+                <button id="add-schedule-btn">
+                    <div class="plus-icon"></div>
+                </button>
             </div>
             <div class="workouts-divider"></div>
-            <div class="schedule-container">
+            <div class="normal-schedule-container">
                 <div class="weeks-container">
                     <!-- Weeks will be dynamically added here -->
                 </div>
@@ -170,6 +175,9 @@
                 <div class="days-container">
                     <!-- Days will be dynamically added here -->
                 </div>
+            </div>
+            <div class="fixed-schedule-container" style="display: none;">
+                <!-- Empty for now, will be populated later -->
             </div>
         </div>
         <div class="section-content diet-section" data-section="diet">
